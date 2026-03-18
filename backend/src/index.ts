@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import { PrismaClient } from './generated/prisma';
+import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import quaisRouter from './routes/quais';
 import assignmentsRouter from './routes/assignments';
