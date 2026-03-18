@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Quai {
+  id          String       @id @default(cuid())
+  nom         String
+  description String?
+  ordre       Int          @default(0)
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  assignments Assignment[]
+}
+
+model Camion {
+  id           String       @id @default(cuid())
+  matricule    String       @unique
+  transporteur String?
+  type         String?      @default("Standard")
+  status       String       @default("PARKING") // PARKING, A_QUAI, PARTI
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  assignments  Assignment[]
+}
+
+model Assignment {
+  id            String    @id @default(cuid())
+  quaiId        String
+  camionId      String
+  arrivee       DateTime  @default(now())
+  depart        DateTime?
+  dureeMinutes  Int?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  quai          Quai      @relation(fields: [quaiId], references: [id], onDelete: Cascade)
+  camion        Camion    @relation(fields: [camionId], references: [id], onDelete: Cascade)
+}
+
