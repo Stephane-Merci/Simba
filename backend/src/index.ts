@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import quaisRouter from './routes/quais';
 import assignmentsRouter from './routes/assignments';
 import camionsRouter from './routes/camions';
+import parkingSectionsRouter from './routes/parkingSections';
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use(express.json());
 app.use('/api/quais', quaisRouter);
 app.use('/api/assignments', assignmentsRouter);
 app.use('/api/camions', camionsRouter);
+app.use('/api/parking-sections', parkingSectionsRouter);
 
 
 app.get('/api/health', (_req, res) => {

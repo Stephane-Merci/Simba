@@ -69,19 +69,12 @@ export default function Truck({ color = '#fff', matricule, subLabel, className =
             </svg>
 
             {/* Labels overlaying the truck */}
-            {(matricule || subLabel) && (
-                <div className={`absolute z-10 flex flex-col items-center gap-0.5 pointer-events-none
+            {matricule && (
+                <div className={`absolute z-10 flex flex-col items-center pointer-events-none
                     ${orientation === 'horizontal' ? 'left-[60%] top-1/2 -translate-y-1/2' : 'top-[60%] left-1/2 -translate-x-1/2'}`}>
-                    {matricule && (
-                        <span className="bg-slate-900/90 text-white px-1 py-0.5 rounded-[2px] text-[8px] font-black font-mono shadow-sm border border-white/10">
-                            {matricule}
-                        </span>
-                    )}
-                    {subLabel && (
-                        <span className="bg-amber-500 text-slate-950 px-1 py-0 rounded-[2px] text-[7px] font-black font-mono shadow-sm">
-                            {subLabel}
-                        </span>
-                    )}
+                    <span className="bg-slate-900 text-white px-1 py-0.5 rounded-[2px] text-[8px] font-black font-mono shadow-md border border-white/20 leading-none">
+                        {matricule}
+                    </span>
                 </div>
             )}
         </div>

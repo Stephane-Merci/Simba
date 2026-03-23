@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 import apiClient from '../api/client';
-import { Quai, Assignment, Stats, Camion } from '../types';
+import { Quai, Assignment, Stats, Camion, ParkingSection } from '../types';
 
 interface SimbaStore {
     quais: Quai[];
+    parkingSections: ParkingSection[];
     camions: Camion[];
     historique: Assignment[];
     stats: Stats | null;
@@ -11,10 +12,13 @@ interface SimbaStore {
     error: string;
 
     fetchQuais: () => Promise<void>;
+    fetchParkingSections: () => Promise<void>;
     fetchCamions: (status?: string) => Promise<void>;
     fetchHistorique: (limit?: number) => Promise<void>;
     fetchStats: () => Promise<void>;
     assignerCamion: (quaiId: string, camionId: string, notes?: string) => Promise<void>;
+    deplacerAuParking: (camionId: string, sectionId: string) => Promise<void>;
+    renvoyerAEntree: (camionId: string) => Promise<void>;
     libererQuai: (assignmentId: string) => Promise<void>;
     createQuai: (nom: string, description?: string) => Promise<void>;
     updateQuai: (id: string, nom: string, description?: string) => Promise<void>;
@@ -22,10 +26,13 @@ interface SimbaStore {
     createCamion: (matricule: string, transporteur?: string) => Promise<void>;
     updateCamion: (id: string, matricule: string, transporteur?: string) => Promise<void>;
     deleteCamion: (id: string) => Promise<void>;
+    createParkingSection: (nom: string, capacite: number, ordre?: number) => Promise<void>;
+    deleteParkingSection: (id: string) => Promise<void>;
 }
 
 export const useStore = create<SimbaStore>((set, get) => ({
     quais: [],
+    parkingSections: [],
     camions: [],
     historique: [],
     stats: null,
@@ -37,7 +44,16 @@ export const useStore = create<SimbaStore>((set, get) => ({
             const res = await apiClient.get<Quai[]>('/quais');
             set({ quais: res.data });
         } catch (e: any) {
-            set({ error: e?.response?.data?.error || 'Erreur chargement quels' });
+            set({ error: e?.response?.data?.error || 'Erreur chargement quais' });
+        }
+    },
+
+    fetchParkingSections: async () => {
+        try {
+            const res = await apiClient.get<ParkingSection[]>('/parking-sections');
+            set({ parkingSections: res.data });
+        } catch {
+            set({ error: 'Erreur chargement sections parking' });
         }
     },
 
@@ -72,13 +88,31 @@ export const useStore = create<SimbaStore>((set, get) => ({
     assignerCamion: async (quaiId, camionId, notes) => {
         set({ error: '' });
         await apiClient.post('/assignments', { quaiId, camionId, notes });
-        await Promise.all([get().fetchQuais(), get().fetchCamions(), get().fetchStats()]);
+        await Promise.all([get().fetchQuais(), get().fetchCamions(), get().fetchStats(), get().fetchParkingSections()]);
+    },
+
+    deplacerAuParking: async (camionId, sectionId) => {
+        set({ error: '' });
+        await apiClient.put(`/camions/${camionId}`, { 
+            status: 'PARKING', 
+            parkingSectionId: sectionId 
+        });
+        await Promise.all([get().fetchCamions(), get().fetchParkingSections()]);
+    },
+
+    renvoyerAEntree: async (camionId) => {
+        set({ error: '' });
+        await apiClient.put(`/camions/${camionId}`, { 
+            status: 'PARTI', 
+            parkingSectionId: null
+        });
+        await Promise.all([get().fetchCamions(), get().fetchParkingSections()]);
     },
 
     libererQuai: async (assignmentId) => {
         set({ error: '' });
         await apiClient.put(`/assignments/${assignmentId}/liberer`, {});
-        await Promise.all([get().fetchQuais(), get().fetchCamions(), get().fetchStats()]);
+        await Promise.all([get().fetchQuais(), get().fetchCamions(), get().fetchStats(), get().fetchParkingSections()]);
     },
 
     createQuai: async (nom, description) => {
@@ -109,6 +143,16 @@ export const useStore = create<SimbaStore>((set, get) => ({
     deleteCamion: async (id) => {
         await apiClient.delete(`/camions/${id}`);
         await get().fetchCamions();
+    },
+
+    createParkingSection: async (nom, capacite, ordre) => {
+        await apiClient.post('/parking-sections', { nom, capacite, ordre });
+        await get().fetchParkingSections();
+    },
+
+    deleteParkingSection: async (id) => {
+        await apiClient.delete(`/parking-sections/${id}`);
+        await get().fetchParkingSections();
     },
 }));
 

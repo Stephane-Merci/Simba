@@ -8,6 +8,8 @@ const camionSchema = z.object({
     matricule: z.string().min(1),
     transporteur: z.string().optional(),
     type: z.string().optional(),
+    status: z.enum(['PARTI', 'PARKING', 'A_QUAI']).optional(),
+    parkingSectionId: z.string().nullable().optional(),
 });
 
 // GET all camions

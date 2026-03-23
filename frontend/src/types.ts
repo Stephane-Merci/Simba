@@ -9,12 +9,24 @@ export interface Quai {
     assignments: Assignment[];
 }
 
+export interface ParkingSection {
+    id: string;
+    nom: string;
+    capacite: number;
+    ordre: number;
+    createdAt: string;
+    updatedAt: string;
+    camions: Camion[];
+}
+
 export interface Camion {
     id: string;
     matricule: string;
     transporteur?: string;
     type?: string;
     status: 'PARKING' | 'A_QUAI' | 'PARTI';
+    parkingSectionId?: string | null;
+    parkingSection?: ParkingSection;
     createdAt: string;
     updatedAt: string;
 }

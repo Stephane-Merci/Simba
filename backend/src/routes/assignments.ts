@@ -69,7 +69,10 @@ router.post('/', async (req, res) => {
 
             await tx.camion.update({
                 where: { id: data.camionId },
-                data: { status: 'A_QUAI' },
+                data: { 
+                    status: 'A_QUAI',
+                    parkingSectionId: null
+                },
             });
 
             return ass;
@@ -104,7 +107,10 @@ router.put('/:id/liberer', async (req, res) => {
 
             await tx.camion.update({
                 where: { id: assignment.camionId },
-                data: { status: 'PARKING' }, // Changed from PARTI to PARKING as per user request
+                data: { 
+                    status: 'PARTI',
+                    parkingSectionId: null
+                },
             });
 
             return ass;

@@ -18,6 +18,7 @@ router.get('/', async (_req, res) => {
             include: {
                 assignments: {
                     where: { depart: null },
+                    include: { camion: true },
                     orderBy: { arrivee: 'desc' },
                     take: 1,
                 },
