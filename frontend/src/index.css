@@ -3,14 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #0f172a;
-  --bg-card: #1e293b;
-  --bg-card-hover: #263348;
-  --border: #334155;
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
+  --bg-primary: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --border: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
   --amber: #f59e0b;
-  --green: #22c55e;
+  --green: #10b981;
   --red: #ef4444;
 }
 
@@ -28,14 +28,14 @@ body {
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #1e293b; }
-::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #64748b; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
 .custom-scrollbar-mini::-webkit-scrollbar { width: 4px; height: 4px; }
 .custom-scrollbar-mini::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar-mini::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
-.custom-scrollbar-mini::-webkit-scrollbar-thumb:hover { background: #475569; }
+.custom-scrollbar-mini::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 2px; }
+.custom-scrollbar-mini::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
 
 /* Animations */
 @keyframes pulse-border {

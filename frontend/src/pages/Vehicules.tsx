@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '../store/useStore';
 import Truck from '../components/Truck';
+import Button from '../components/Button';
 
 export default function Vehicules() {
     const { camions, fetchCamions, createCamion, updateCamion, deleteCamion } = useStore();
     const [isAdding, setIsAdding] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState({ matricule: '', transporteur: '' });
 
@@ -14,12 +16,27 @@ export default function Vehicules() {
 
     const handleSave = async () => {
         if (!formData.matricule) return;
-        if (editingId) {
-            await updateCamion(editingId, formData.matricule, formData.transporteur);
-        } else {
-            await createCamion(formData.matricule, formData.transporteur);
+        setIsLoading(true);
+        try {
+            if (editingId) {
+                await updateCamion(editingId, formData.matricule, formData.transporteur);
+            } else {
+                await createCamion(formData.matricule, formData.transporteur);
+            }
+            reset();
+        } finally {
+            setIsLoading(false);
         }
-        reset();
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm('Supprimer ce véhicule ?')) return;
+        setIsLoading(true);
+        try {
+            await deleteCamion(id);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const reset = () => {
@@ -38,36 +55,36 @@ export default function Vehicules() {
         <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight">Gestion des Véhicules</h1>
-                    <p className="text-slate-400 mt-1">Gérez la flotte de camions entrant dans l'entrepôt.</p>
+                    <h1 className="text-3xl font-bold text-[var(--text-primary)] tracking-tight">Gestion des Véhicules</h1>
+                    <p className="text-[var(--text-secondary)] mt-1">Gérez la flotte de camions entrant dans l'entrepôt.</p>
                 </div>
                 {!isAdding && (
-                    <button 
+                    <Button 
                         onClick={() => setIsAdding(true)}
                         className="bg-amber-500 text-slate-900 px-6 py-2.5 rounded-xl font-bold hover:bg-amber-400 shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all"
                     >
                         + Nouveau véhicule
-                    </button>
+                    </Button>
                 )}
             </div>
 
             {isAdding && (
-                <div className="bg-slate-900 border border-amber-500/30 rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
-                    <h2 className="text-lg font-bold text-white mb-4">{editingId ? 'Modifier véhicule' : 'Nouveau véhicule'}</h2>
+                <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+                    <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4">{editingId ? 'Modifier véhicule' : 'Nouveau véhicule'}</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-slate-500 uppercase">Matricule</label>
+                            <label className="text-xs font-bold text-[var(--text-secondary)] uppercase">Matricule</label>
                             <input 
-                                className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-amber-500 transition-all font-mono"
+                                className="w-full bg-[var(--bg-primary)] border-2 border-[var(--border)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] outline-none focus:border-amber-500 transition-all font-mono"
                                 value={formData.matricule}
                                 onChange={e => setFormData({ ...formData, matricule: e.target.value.toUpperCase() })}
                                 placeholder="ex: ABC-123-XY"
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-slate-500 uppercase">Transporteur / Transporteur</label>
+                            <label className="text-xs font-bold text-[var(--text-secondary)] uppercase">Transporteur</label>
                             <input 
-                                className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-amber-500 transition-all"
+                                className="w-full bg-[var(--bg-primary)] border-2 border-[var(--border)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] outline-none focus:border-amber-500 transition-all"
                                 value={formData.transporteur}
                                 onChange={e => setFormData({ ...formData, transporteur: e.target.value })}
                                 placeholder="ex: DHL, FedEx..."
@@ -75,37 +92,41 @@ export default function Vehicules() {
                         </div>
                     </div>
                     <div className="flex justify-end gap-3 mt-6">
-                        <button onClick={reset} className="px-5 py-2.5 text-slate-400 hover:text-white font-medium">
+                        <Button 
+                            variant="ghost" 
+                            onClick={reset} 
+                            disabled={isLoading}
+                        >
                             Annuler
-                        </button>
-                        <button 
+                        </Button>
+                        <Button 
                             onClick={handleSave}
-                            className="bg-slate-100 text-slate-900 px-6 py-2.5 rounded-xl font-bold hover:bg-white active:scale-[0.98] transition-all"
+                            isLoading={isLoading}
                         >
                             Enregistrer
-                        </button>
+                        </Button>
                     </div>
                 </div>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {camions.map((camion) => (
-                    <div key={camion.id} className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5 group hover:border-slate-700 transition-all flex flex-col items-center">
+                    <div key={camion.id} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-5 group hover:border-slate-300 transition-all flex flex-col items-center shadow-sm hover:shadow-md">
                         <Truck 
                             matricule={camion.matricule} 
-                            color={camion.status === 'A_QUAI' ? '#f59e0b' : camion.status === 'PARTI' ? '#475569' : '#fff'}
+                            color={camion.status === 'A_QUAI' ? '#f59e0b' : camion.status === 'PARTI' ? '#94a3b8' : '#0f172a'}
                             className="mb-6 scale-90"
                         />
                         
-                        <div className="w-full flex justify-between items-start pt-4 border-t border-white/5">
+                        <div className="w-full flex justify-between items-start pt-4 border-t border-[var(--border)]">
                             <div>
-                                <h3 className="text-lg font-bold text-white font-mono">{camion.matricule}</h3>
-                                <p className="text-sm text-slate-500">{camion.transporteur || 'Sans transporteur'}</p>
+                                <h3 className="text-lg font-bold text-[var(--text-primary)] font-mono">{camion.matricule}</h3>
+                                <p className="text-sm text-[var(--text-secondary)]">{camion.transporteur || 'Sans transporteur'}</p>
                             </div>
                             <div className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider
-                                ${camion.status === 'A_QUAI' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 
-                                  camion.status === 'PARKING' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 
-                                  'bg-slate-500/10 text-slate-500 border border-slate-500/20'}`}>
+                                ${camion.status === 'A_QUAI' ? 'bg-amber-100 text-amber-600 border border-amber-200' : 
+                                  camion.status === 'PARKING' ? 'bg-emerald-100 text-emerald-600 border border-emerald-200' : 
+                                  'bg-slate-100 text-slate-500 border border-slate-200'}`}>
                                 {camion.status}
                             </div>
                         </div>
@@ -113,13 +134,13 @@ export default function Vehicules() {
                         <div className="w-full flex gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button 
                                 onClick={() => startEdit(camion)}
-                                className="flex-1 py-2 text-xs font-bold text-slate-400 hover:text-white bg-slate-800 rounded-lg"
+                                className="flex-1 py-2 text-xs font-bold text-slate-500 hover:text-[var(--text-primary)] bg-slate-100 rounded-lg transition-colors"
                             >
                                 Modifier
                             </button>
                             <button 
-                                onClick={() => confirm('Supprimer ce véhicule ?') && deleteCamion(camion.id)}
-                                className="flex-1 py-2 text-xs font-bold text-slate-400 hover:text-red-500 bg-slate-800 rounded-lg"
+                                onClick={() => handleDelete(camion.id)}
+                                className="flex-1 py-2 text-xs font-bold text-slate-500 hover:text-red-500 bg-slate-100 rounded-lg transition-colors"
                             >
                                 Supprimer
                             </button>
@@ -129,8 +150,8 @@ export default function Vehicules() {
             </div>
             
             {camions.length === 0 && !isAdding && (
-                <div className="text-center py-20 bg-slate-900/20 rounded-3xl border-2 border-dashed border-slate-800">
-                    <p className="text-slate-500">Aucun véhicule enregistré.</p>
+                <div className="text-center py-20 bg-[var(--bg-card)] rounded-3xl border-2 border-dashed border-[var(--border)]">
+                    <p className="text-[var(--text-secondary)]">Aucun véhicule enregistré.</p>
                 </div>
             )}
         </div>

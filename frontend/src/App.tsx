@@ -8,8 +8,7 @@ import Vehicules from './pages/Vehicules';
 function App() {
     return (
         <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-
-            <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+            <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] flex flex-col font-sans selection:bg-amber-100">
                 <NavBar />
                 <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-8">
                     <Routes>
@@ -20,8 +19,8 @@ function App() {
                     </Routes>
                 </main>
 
-                <footer className="py-6 border-t border-slate-800 text-center text-slate-500 text-sm">
-                    &copy; {new Date().getFullYear()} Simba - Gestion Logistique. Tous droits réservés.
+                <footer className="py-8 border-t border-[var(--border)] text-center text-[var(--text-secondary)] text-xs font-bold uppercase tracking-widest opacity-40">
+                    &copy; {new Date().getFullYear()} Simba Logistics Hub. All rights reserved.
                 </footer>
             </div>
         </Router>
