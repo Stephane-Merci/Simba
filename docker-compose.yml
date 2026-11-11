@@ -1,0 +1,37 @@
+# Déploiement complet en une commande :  docker compose up -d --build
+# Application disponible sur http://localhost:8080
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: simba
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-simba}
+      POSTGRES_DB: simba
+    volumes:
+      - simba-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U simba -d simba"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://simba:${POSTGRES_PASSWORD:-simba}@db:5432/simba?schema=public
+      PORT: 5001
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "${SIMBA_PORT:-8080}:80"
+    depends_on:
+      - api
+
+volumes:
+  simba-data:

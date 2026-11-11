@@ -1,159 +1,202 @@
-import { useEffect, useState } from 'react';
-import { useStore } from '../store/useStore';
-import Truck from '../components/Truck';
-import Button from '../components/Button';
+import { useCallback, useEffect, useState } from 'react';
+import { Eye, LogIn, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { camionsApi } from '../api/simba';
+import { messageErreur } from '../api/client';
+import { pluriel, quand } from '../lib/format';
+import { useSite } from '../store/useSite';
+import { confirmer, notifier, useUi } from '../store/useUi';
+import type { CamionRegistre } from '../types';
+import Plaque from '../components/ui/Plaque';
+import Camion3D from '../components/ui/Camion3D';
+import Bouton from '../components/ui/Bouton';
+import Modale from '../components/ui/Modale';
+import { IconeZone } from '../components/parcours/Parcours';
 
-export default function Vehicules() {
-    const { camions, fetchCamions, createCamion, updateCamion, deleteCamion } = useStore();
-    const [isAdding, setIsAdding] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [editingId, setEditingId] = useState<string | null>(null);
-    const [formData, setFormData] = useState({ matricule: '', transporteur: '' });
+function FormulaireCamion({ camion, ouvert, onFermer, onEnregistre }: { camion: CamionRegistre | null; ouvert: boolean; onFermer: () => void; onEnregistre: () => void }) {
+    const [matricule, setMatricule] = useState('');
+    const [transporteur, setTransporteur] = useState('');
+    const [envoi, setEnvoi] = useState(false);
+    const [erreur, setErreur] = useState<string | null>(null);
 
     useEffect(() => {
-        fetchCamions();
-    }, [fetchCamions]);
+        if (!ouvert) return;
+        setMatricule(camion?.matricule ?? '');
+        setTransporteur(camion?.transporteur ?? '');
+        setErreur(null);
+    }, [ouvert, camion]);
 
-    const handleSave = async () => {
-        if (!formData.matricule) return;
-        setIsLoading(true);
+    const enregistrer = async () => {
+        setEnvoi(true);
         try {
-            if (editingId) {
-                await updateCamion(editingId, formData.matricule, formData.transporteur);
-            } else {
-                await createCamion(formData.matricule, formData.transporteur);
-            }
-            reset();
+            if (camion) await camionsApi.modifier(camion.id, { matricule, transporteur: transporteur || null });
+            else await camionsApi.creer({ matricule, transporteur: transporteur || undefined });
+            notifier({ type: 'succes', titre: camion ? 'Véhicule modifié' : 'Véhicule ajouté' });
+            onEnregistre();
+            onFermer();
+        } catch (e) {
+            setErreur(messageErreur(e));
         } finally {
-            setIsLoading(false);
+            setEnvoi(false);
         }
-    };
-
-    const handleDelete = async (id: string) => {
-        if (!confirm('Supprimer ce véhicule ?')) return;
-        setIsLoading(true);
-        try {
-            await deleteCamion(id);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const reset = () => {
-        setIsAdding(false);
-        setEditingId(null);
-        setFormData({ matricule: '', transporteur: '' });
-    };
-
-    const startEdit = (camion: any) => {
-        setEditingId(camion.id);
-        setFormData({ matricule: camion.matricule, transporteur: camion.transporteur || '' });
-        setIsAdding(true);
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <Modale
+            ouvert={ouvert}
+            onFermer={onFermer}
+            titre={camion ? 'Modifier le véhicule' : 'Ajouter un véhicule'}
+            sousTitre={camion ? undefined : "Pré-enregistrement facultatif : un camion est aussi créé automatiquement à l'accueil."}
+            largeur="max-w-md"
+            pied={
+                <>
+                    <Bouton variante="fantome" onClick={onFermer}>Annuler</Bouton>
+                    <Bouton onClick={enregistrer} chargement={envoi} disabled={!matricule.trim()}>Enregistrer</Bouton>
+                </>
+            }
+        >
+            <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); void enregistrer(); }}>
                 <div>
-                    <h1 className="text-3xl font-bold text-[var(--text-primary)] tracking-tight">Gestion des Véhicules</h1>
-                    <p className="text-[var(--text-secondary)] mt-1">Gérez la flotte de camions entrant dans l'entrepôt.</p>
+                    <label className="label" htmlFor="v-matricule">Matricule</label>
+                    <input id="v-matricule" autoFocus className="field font-mono text-lg font-bold tracking-widest" value={matricule} onChange={(e) => setMatricule(e.target.value.toUpperCase())} placeholder="AB-123-CD" />
                 </div>
-                {!isAdding && (
-                    <Button 
-                        onClick={() => setIsAdding(true)}
-                        className="bg-amber-500 text-slate-900 px-6 py-2.5 rounded-xl font-bold hover:bg-amber-400 shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all"
-                    >
-                        + Nouveau véhicule
-                    </Button>
-                )}
+                <div>
+                    <label className="label" htmlFor="v-transporteur">Transporteur</label>
+                    <input id="v-transporteur" className="field" value={transporteur} onChange={(e) => setTransporteur(e.target.value)} placeholder="Facultatif" />
+                </div>
+                {erreur && <p className="rounded-xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{erreur}</p>}
+                <button type="submit" hidden />
+            </form>
+        </Modale>
+    );
+}
+
+export default function Vehicules() {
+    const [q, setQ] = useState('');
+    const [camions, setCamions] = useState<CamionRegistre[]>([]);
+    const [chargement, setChargement] = useState(true);
+    const [edition, setEdition] = useState<{ ouvert: boolean; camion: CamionRegistre | null }>({ ouvert: false, camion: null });
+    const ouvrirAccueil = useUi((s) => s.ouvrirAccueil);
+    const ouvrirVisite = useUi((s) => s.ouvrirVisite);
+    // Se met à jour quand le site change (arrivée, sortie…)
+    const visitesSurSite = useSite((s) => s.etat?.visites);
+
+    const charger = useCallback(() => {
+        camionsApi
+            .rechercher(q)
+            .then(setCamions)
+            .catch((e) => notifier({ type: 'erreur', titre: 'Chargement impossible', message: messageErreur(e) }))
+            .finally(() => setChargement(false));
+    }, [q]);
+
+    useEffect(() => {
+        const t = setTimeout(charger, 250);
+        return () => clearTimeout(t);
+    }, [charger, visitesSurSite]);
+
+    const supprimer = async (c: CamionRegistre) => {
+        const ok = await confirmer({
+            titre: `Supprimer ${c.matricule} ?`,
+            message: `Le véhicule et son historique (${pluriel(c._count.visites, 'passage')}) seront définitivement supprimés.`,
+            libelleOk: 'Supprimer',
+            danger: true,
+        });
+        if (!ok) return;
+        try {
+            await camionsApi.supprimer(c.id);
+            notifier({ type: 'succes', titre: `${c.matricule} supprimé` });
+            charger();
+        } catch (e) {
+            notifier({ type: 'erreur', titre: 'Suppression impossible', message: messageErreur(e) });
+        }
+    };
+
+    return (
+        <div className="space-y-5 animate-apparition">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-black tracking-tight text-slate-900">Véhicules</h1>
+                    <p className="mt-1 text-sm text-slate-500">Registre des camions déjà venus sur le site.</p>
+                </div>
+                <Bouton variante="secondaire" icone={<Plus size={16} />} onClick={() => setEdition({ ouvert: true, camion: null })}>
+                    Ajouter un véhicule
+                </Bouton>
             </div>
 
-            {isAdding && (
-                <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
-                    <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4">{editingId ? 'Modifier véhicule' : 'Nouveau véhicule'}</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-[var(--text-secondary)] uppercase">Matricule</label>
-                            <input 
-                                className="w-full bg-[var(--bg-primary)] border-2 border-[var(--border)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] outline-none focus:border-amber-500 transition-all font-mono"
-                                value={formData.matricule}
-                                onChange={e => setFormData({ ...formData, matricule: e.target.value.toUpperCase() })}
-                                placeholder="ex: ABC-123-XY"
-                            />
+            <div className="glass relative rounded-2xl p-3">
+                <Search size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input className="field pl-10" placeholder="Rechercher un matricule ou un transporteur…" value={q} onChange={(e) => setQ(e.target.value)} />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+                {camions.map((c) => {
+                    const derniere = c.visites[0];
+                    const surSite = !!derniere && !derniere.depart;
+                    const ou = surSite ? derniere.sejours[0] : undefined;
+                    return (
+                        <div key={c.id} className="glass group flex flex-col rounded-3xl p-4 transition hover:-translate-y-0.5 hover:shadow-2xl">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="space-y-1.5">
+                                    <Plaque matricule={c.matricule} taille="lg" />
+                                    <p className="text-sm text-slate-500">{c.transporteur ?? 'Transporteur non renseigné'}</p>
+                                </div>
+                                <Camion3D operation={surSite ? derniere.operation : undefined} largeur={70} />
+                            </div>
+                            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                                {surSite ? (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 font-bold text-emerald-700">
+                                        <span className="voyant h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                        Sur site{ou && <> · <IconeZone zone={ou.zone} size={11} /> {ou.libelle}</>}
+                                    </span>
+                                ) : (
+                                    <span className="rounded-full bg-slate-900/5 px-2.5 py-1 font-bold text-slate-500">Hors site</span>
+                                )}
+                                <span className="text-slate-500">
+                                    {pluriel(c._count.visites, 'passage')}
+                                    {derniere?.depart && <> · dernier {quand(derniere.depart)}</>}
+                                </span>
+                            </div>
+                            <div className="mt-4 flex items-center gap-2 border-t border-white/60 pt-3">
+                                {surSite ? (
+                                    <Bouton taille="sm" variante="secondaire" icone={<Eye size={14} />} onClick={() => ouvrirVisite(derniere.id)}>
+                                        Voir la fiche
+                                    </Bouton>
+                                ) : (
+                                    <Bouton taille="sm" icone={<LogIn size={14} />} onClick={() => ouvrirAccueil(c.matricule)}>
+                                        Enregistrer une arrivée
+                                    </Bouton>
+                                )}
+                                <div className="ml-auto flex gap-1">
+                                    <button className="rounded-lg p-2 text-slate-400 transition hover:bg-white hover:text-slate-800" title="Modifier" onClick={() => setEdition({ ouvert: true, camion: c })}>
+                                        <Pencil size={15} />
+                                    </button>
+                                    <button
+                                        className="rounded-lg p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-30 disabled:hover:bg-transparent"
+                                        title={surSite ? 'Impossible : le camion est sur site' : 'Supprimer'}
+                                        disabled={surSite}
+                                        onClick={() => supprimer(c)}
+                                    >
+                                        <Trash2 size={15} />
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-[var(--text-secondary)] uppercase">Transporteur</label>
-                            <input 
-                                className="w-full bg-[var(--bg-primary)] border-2 border-[var(--border)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] outline-none focus:border-amber-500 transition-all"
-                                value={formData.transporteur}
-                                onChange={e => setFormData({ ...formData, transporteur: e.target.value })}
-                                placeholder="ex: DHL, FedEx..."
-                            />
-                        </div>
-                    </div>
-                    <div className="flex justify-end gap-3 mt-6">
-                        <Button 
-                            variant="ghost" 
-                            onClick={reset} 
-                            disabled={isLoading}
-                        >
-                            Annuler
-                        </Button>
-                        <Button 
-                            onClick={handleSave}
-                            isLoading={isLoading}
-                        >
-                            Enregistrer
-                        </Button>
-                    </div>
+                    );
+                })}
+            </div>
+
+            {!chargement && camions.length === 0 && (
+                <div className="glass rounded-3xl p-14 text-center">
+                    <p className="font-bold text-slate-700">{q ? 'Aucun véhicule trouvé' : 'Aucun véhicule enregistré'}</p>
+                    <p className="mt-1 text-sm text-slate-500">Les camions sont ajoutés automatiquement lors de leur arrivée à l'accueil.</p>
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {camions.map((camion) => (
-                    <div key={camion.id} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-5 group hover:border-slate-300 transition-all flex flex-col items-center shadow-sm hover:shadow-md">
-                        <Truck 
-                            matricule={camion.matricule} 
-                            color={camion.status === 'A_QUAI' ? '#f59e0b' : camion.status === 'PARTI' ? '#94a3b8' : '#0f172a'}
-                            className="mb-6 scale-90"
-                        />
-                        
-                        <div className="w-full flex justify-between items-start pt-4 border-t border-[var(--border)]">
-                            <div>
-                                <h3 className="text-lg font-bold text-[var(--text-primary)] font-mono">{camion.matricule}</h3>
-                                <p className="text-sm text-[var(--text-secondary)]">{camion.transporteur || 'Sans transporteur'}</p>
-                            </div>
-                            <div className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider
-                                ${camion.status === 'A_QUAI' ? 'bg-amber-100 text-amber-600 border border-amber-200' : 
-                                  camion.status === 'PARKING' ? 'bg-emerald-100 text-emerald-600 border border-emerald-200' : 
-                                  'bg-slate-100 text-slate-500 border border-slate-200'}`}>
-                                {camion.status}
-                            </div>
-                        </div>
-
-                        <div className="w-full flex gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button 
-                                onClick={() => startEdit(camion)}
-                                className="flex-1 py-2 text-xs font-bold text-slate-500 hover:text-[var(--text-primary)] bg-slate-100 rounded-lg transition-colors"
-                            >
-                                Modifier
-                            </button>
-                            <button 
-                                onClick={() => handleDelete(camion.id)}
-                                className="flex-1 py-2 text-xs font-bold text-slate-500 hover:text-red-500 bg-slate-100 rounded-lg transition-colors"
-                            >
-                                Supprimer
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-            
-            {camions.length === 0 && !isAdding && (
-                <div className="text-center py-20 bg-[var(--bg-card)] rounded-3xl border-2 border-dashed border-[var(--border)]">
-                    <p className="text-[var(--text-secondary)]">Aucun véhicule enregistré.</p>
-                </div>
-            )}
+            <FormulaireCamion
+                ouvert={edition.ouvert}
+                camion={edition.camion}
+                onFermer={() => setEdition({ ouvert: false, camion: null })}
+                onEnregistre={charger}
+            />
         </div>
     );
 }

@@ -2,69 +2,193 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Jetons de design ─────────────────────────────────────────────────── */
 :root {
-  --bg-primary: #f8fafc;
-  --bg-card: #ffffff;
-  --bg-card-hover: #f1f5f9;
-  --border: #e2e8f0;
-  --text-primary: #0f172a;
-  --text-secondary: #64748b;
-  --amber: #f59e0b;
-  --green: #10b981;
-  --red: #ef4444;
+  --bg: #eef1f8;
+  --ink: #0f172a;
+  --ink-2: #475569;
+  --ink-3: #94a3b8;
+  --line: rgba(15, 23, 42, 0.08);
+  --glass: rgba(255, 255, 255, 0.55);
+  --glass-strong: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --shadow: 0 10px 40px -12px rgba(30, 41, 80, 0.18), 0 2px 6px -2px rgba(30, 41, 80, 0.06);
+
+  /* Opérations */
+  --dech: #0ea5e9;      /* déchargement : bleu */
+  --dech-soft: #e0f2fe;
+  --charg: #f59e0b;     /* chargement : ambre */
+  --charg-soft: #fef3c7;
+
+  /* Zones */
+  --attente: #8b5cf6;
+  --parking: #10b981;
+  --quai: #f97316;
+
+  color-scheme: light;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
+
+html, body { margin: 0; min-height: 100%; }
 
 body {
-  font-family: 'Inter', sans-serif;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  margin: 0;
-  min-height: 100vh;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #f1f5f9; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-.custom-scrollbar-mini::-webkit-scrollbar { width: 4px; height: 4px; }
-.custom-scrollbar-mini::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar-mini::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 2px; }
-.custom-scrollbar-mini::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
-
-/* Animations */
-@keyframes pulse-border {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
-  50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+/* ── Fond « aurore » animé ────────────────────────────────────────────── */
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #dbeafe 0%, transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, #fde68a55 0%, transparent 60%),
+    linear-gradient(180deg, #f4f6fb 0%, #eef1f8 100%);
+}
+.aurora span {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  opacity: 0.55;
+  animation: flotter 22s ease-in-out infinite alternate;
+}
+.aurora span:nth-child(1) { width: 480px; height: 480px; left: -120px; top: 20%; background: #93c5fd; }
+.aurora span:nth-child(2) { width: 420px; height: 420px; right: -80px; top: -60px; background: #fcd34d; animation-delay: -6s; }
+.aurora span:nth-child(3) { width: 520px; height: 520px; left: 35%; bottom: -220px; background: #c4b5fd; animation-delay: -12s; }
+.aurora span:nth-child(4) { width: 300px; height: 300px; right: 15%; bottom: 10%; background: #6ee7b7; animation-delay: -3s; opacity: 0.35; }
+.aurora::after {
+  /* grille de sol légère pour l'effet « plan de site » */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
 }
 
-@keyframes blink-red {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+@keyframes flotter {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(60px, -40px) scale(1.1); }
+  100% { transform: translate(-40px, 30px) scale(0.95); }
 }
 
-.animate-pulse-border { animation: pulse-border 2s infinite; }
-.animate-blink { animation: blink-red 1.2s infinite; }
+/* ── Verre ────────────────────────────────────────────────────────────── */
+@layer components {
+  .glass {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+  }
+  .glass-strong {
+    background: var(--glass-strong);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 30px 80px -20px rgba(30, 41, 80, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+  }
+  .field {
+    @apply w-full rounded-xl border border-slate-200/80 bg-white/70 px-3.5 py-2.5 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-400/15;
+  }
+  .label {
+    @apply mb-1.5 block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-semibold transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100;
+  }
+}
 
-@keyframes bounce-subtle {
+/* ── Effet 3D (inclinaison au survol, voir useTilt) ───────────────────── */
+.tilt {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
+  transition: transform 0.25s ease-out;
+  transform-style: preserve-3d;
+}
+.tilt .tilt-pop { transform: translateZ(30px); }
+
+/* ── Quais : porte sectionnelle 3D ────────────────────────────────────── */
+.dock {
+  perspective: 700px;
+}
+.dock-door {
+  background:
+    repeating-linear-gradient(180deg, #e2e8f0 0px, #e2e8f0 9px, #cbd5e1 9px, #cbd5e1 11px);
+  transform-origin: top center;
+  transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.7s;
+  box-shadow: inset 0 -6px 12px rgba(15, 23, 42, 0.12);
+}
+.dock[data-occupe='true'] .dock-door {
+  transform: rotateX(-82deg);
+  opacity: 0.25;
+}
+.dock-floor {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.06), transparent 70%);
+}
+
+/* ── Camions ──────────────────────────────────────────────────────────── */
+@keyframes entree-camion {
+  0%   { transform: translateY(18px) scale(0.92) rotateX(25deg); opacity: 0; }
+  60%  { transform: translateY(-3px) scale(1.02) rotateX(0); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+.animate-entree { animation: entree-camion 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@keyframes ralenti {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  50%      { transform: translateY(-1.5px); }
 }
-.animate-bounce-subtle { animation: bounce-subtle 2s infinite ease-in-out; }
+.camion-moteur { animation: ralenti 1.6s ease-in-out infinite; }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.animate-fadeIn { animation: fadeIn 0.2s ease-out; }
+@keyframes roue { to { transform: rotate(360deg); } }
+.roue-tourne { animation: roue 0.6s linear infinite; transform-box: fill-box; transform-origin: center; }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(24px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+@keyframes alerte {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.45); }
+  50%      { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
 }
-.animate-slideUp { animation: slideUp 0.22s ease-out; }
+.anneau-alerte { animation: alerte 1.6s ease-in-out infinite; }
+
+@keyframes voyant {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+.voyant { animation: voyant 1.8s ease-in-out infinite; }
+
+/* Barrière de sortie */
+.barriere {
+  background: repeating-linear-gradient(-45deg, #ef4444 0 12px, #ffffff 12px 24px);
+  background-size: 34px 34px;
+}
+.barriere-active { animation: defile 0.8s linear infinite; }
+@keyframes defile { to { background-position: 34px 0; } }
+
+/* ── Panneaux / modales ───────────────────────────────────────────────── */
+@keyframes apparition { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes modal-in { from { opacity: 0; transform: translateY(24px) scale(0.96) rotateX(8deg); } to { opacity: 1; transform: none; } }
+@keyframes fondu { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tiroir { from { transform: translateX(105%); } to { transform: none; } }
+@keyframes toast-in { from { opacity: 0; transform: translateY(16px) scale(0.95); } to { opacity: 1; transform: none; } }
+
+.animate-apparition { animation: apparition 0.35s ease-out both; }
+.animate-modal { animation: modal-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-fondu { animation: fondu 0.2s ease-out both; }
+.animate-tiroir { animation: tiroir 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-toast { animation: toast-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* ── Barres de défilement ─────────────────────────────────────────────── */
+.scroll-fin::-webkit-scrollbar { width: 6px; height: 6px; }
+.scroll-fin::-webkit-scrollbar-track { background: transparent; }
+.scroll-fin::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.25); border-radius: 9999px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
