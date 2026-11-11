@@ -1,16 +1,21 @@
 {
     "name": "simba-backend",
-    "version": "1.0.0",
-    "description": "Simba - Gestion des Camions et Quais",
+    "version": "2.0.0",
+    "description": "Simba - Gestion des camions, quais et parkings",
     "main": "dist/index.js",
     "scripts": {
         "dev": "tsx watch src/index.ts",
         "build": "prisma generate && tsc",
-        "start": "node dist/index.js",
+        "start": "prisma migrate deploy && node dist/index.js",
+        "typecheck": "tsc --noEmit",
         "prisma:generate": "prisma generate",
         "prisma:migrate": "prisma migrate dev",
         "prisma:studio": "prisma studio",
+        "db:seed": "prisma db seed",
         "postinstall": "prisma generate"
+    },
+    "prisma": {
+        "seed": "tsx prisma/seed.ts"
     },
     "dependencies": {
         "@prisma/client": "^5.7.1",

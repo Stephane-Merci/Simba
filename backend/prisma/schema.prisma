@@ -1,3 +1,13 @@
+// Modèle de données SIMBA
+//
+// Parcours d'un camion sur site :
+//   Camion  : registre permanent des véhicules (retrouvé par matricule à chaque passage)
+//   Visite  : un passage sur site, de l'arrivée à l'accueil jusqu'à la sortie
+//   Sejour  : un segment de temps passé dans UNE zone (accueil, parking ou quai)
+//
+// Chaque déplacement ferme le séjour en cours et en ouvre un nouveau : le temps passé
+// dans chaque zone est donc toujours connu, même après la sortie du camion.
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,15 +17,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Operation {
+  CHARGEMENT // le camion vient récupérer de la marchandise
+  DECHARGEMENT // le camion vient livrer de la marchandise
+}
+
+enum Zone {
+  ATTENTE // à l'accueil / file d'attente
+  PARKING
+  QUAI
+}
+
 model Quai {
-  id          String       @id @default(cuid())
+  id          String   @id @default(cuid())
   nom         String
   description String?
-  ordre       Int          @default(0)
-  isActive    Boolean      @default(true)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  assignments Assignment[]
+  ordre       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  sejours     Sejour[]
 }
 
 model ParkingSection {
@@ -25,32 +46,52 @@ model ParkingSection {
   ordre     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  camions   Camion[]
+  sejours   Sejour[]
 }
 
 model Camion {
-  id               String          @id @default(cuid())
-  matricule        String          @unique
-  transporteur     String?
-  type             String?         @default("Standard")
-  status           String          @default("PARTI") // PARTI, PARKING, A_QUAI
-  parkingSectionId String?
-  parkingSection   ParkingSection? @relation(fields: [parkingSectionId], references: [id])
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  assignments      Assignment[]
+  id           String   @id @default(cuid())
+  matricule    String   @unique
+  transporteur String?
+  type         String?  @default("Standard")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  visites      Visite[]
 }
 
-model Assignment {
+model Visite {
   id           String    @id @default(cuid())
-  quaiId       String
   camionId     String
+  operation    Operation
+  chauffeur    String?
+  notes        String?
   arrivee      DateTime  @default(now())
   depart       DateTime?
   dureeMinutes Int?
-  notes        String?
-  createdAt    DateTime  @default(now())
-  quai         Quai      @relation(fields: [quaiId], references: [id], onDelete: Cascade)
   camion       Camion    @relation(fields: [camionId], references: [id], onDelete: Cascade)
+  sejours      Sejour[]
+
+  @@index([camionId])
+  @@index([depart])
 }
 
+model Sejour {
+  id               String          @id @default(cuid())
+  visiteId         String
+  zone             Zone
+  // Nom de l'emplacement au moment du séjour : l'historique reste lisible
+  // même si le quai ou le parking est renommé ou supprimé ensuite.
+  libelle          String
+  quaiId           String?
+  parkingSectionId String?
+  debut            DateTime        @default(now())
+  fin              DateTime?
+  dureeMinutes     Int?
+  visite           Visite          @relation(fields: [visiteId], references: [id], onDelete: Cascade)
+  quai             Quai?           @relation(fields: [quaiId], references: [id], onDelete: SetNull)
+  parkingSection   ParkingSection? @relation(fields: [parkingSectionId], references: [id], onDelete: SetNull)
+
+  @@index([visiteId])
+  @@index([quaiId, fin])
+  @@index([parkingSectionId, fin])
+}

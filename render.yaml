@@ -1,0 +1,25 @@
+# Render Blueprint — déploiement en un clic : Dashboard Render → New → Blueprint → ce dépôt.
+# Un seul service web : l'API sert aussi l'interface (même origine, pas de CORS à configurer).
+databases:
+  - name: simba-db
+    plan: free
+    databaseName: simba
+    user: simba
+
+services:
+  - type: web
+    name: simba
+    runtime: node
+    plan: free
+    buildCommand: cd frontend && npm ci && npm run build && cd ../backend && npm ci && npm run build
+    startCommand: cd backend && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: STATIC_DIR
+        value: ../frontend/dist
+      - key: DATABASE_URL
+        fromDatabase:
+          name: simba-db
+          property: connectionString
