@@ -96,7 +96,7 @@ export default function TableauDeBord() {
                     raccourci <kbd className="rounded border border-slate-300 bg-white/70 px-1.5 font-mono text-[10px]">N</kbd> pour une nouvelle arrivée
                 </p>
 
-                <div className="grid gap-4 lg:h-[calc(100vh-250px)] lg:min-h-[560px] lg:grid-cols-[300px_minmax(0,1fr)_300px]">
+                <div className="grid gap-4 lg:h-[calc(100vh-250px)] lg:min-h-[560px] lg:grid-cols-[210px_minmax(0,1fr)_340px]">
                     <div className="flex min-h-0 flex-col gap-4">
                         <FileAttente visites={occ.attente} />
                         <PorteSortie />

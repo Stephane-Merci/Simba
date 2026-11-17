@@ -12,8 +12,9 @@ import BadgeOperation from '../ui/BadgeOperation';
 
 export type VarianteCarte = 'liste' | 'quai' | 'parking';
 
+/** Anneau de couleur selon le temps passé dans la zone : vert → jaune → rouge (clignotant). */
 const ANNEAUX: Record<Niveau, string> = {
-    ok: 'ring-1 ring-white/80',
+    ok: 'ring-2 ring-emerald-500',
     attention: 'ring-2 ring-amber-400',
     alerte: 'ring-2 ring-rose-500 anneau-alerte',
 };
@@ -21,7 +22,7 @@ const ANNEAUX: Record<Niveau, string> = {
 function Chrono({ visite, maintenant, niveau }: { visite: Visite; maintenant: number; niveau: Niveau }) {
     const s = sejourActuel(visite);
     const ms = s ? maintenant - new Date(s.debut).getTime() : 0;
-    const couleur = niveau === 'alerte' ? 'text-rose-600' : niveau === 'attention' ? 'text-amber-600' : 'text-slate-500';
+    const couleur = niveau === 'alerte' ? 'text-rose-600' : niveau === 'attention' ? 'text-amber-600' : 'text-emerald-600';
     return (
         <span className={`inline-flex items-center gap-1 font-mono text-[11px] font-bold ${couleur}`} title="Temps dans cette zone">
             {niveau === 'ok' ? <Timer size={11} /> : <AlertTriangle size={11} />}
@@ -60,28 +61,25 @@ export function CarteCamion({
 
     if (variante === 'parking') {
         return (
-            <div className={`${base} flex items-center gap-2 px-2 py-1.5`}>
-                <Camion3D operation={visite.operation} largeur={38} roule={enDeplacement} />
-                <div className="min-w-0 flex-1">
-                    <Plaque matricule={visite.camion.matricule} taille="sm" />
-                    <div className="mt-0.5">
-                        <Chrono visite={visite} maintenant={maintenant} niveau={niveau} />
-                    </div>
-                </div>
+            // Tuile compacte (3 par rangée) : matricule et chrono sous le camion.
+            <div className={`${base} flex min-w-0 flex-col items-center gap-0.5 px-1 pb-1 pt-1`} title={visite.camion.matricule}>
+                <Camion3D operation={visite.operation} largeur={40} roule={enDeplacement} />
+                <Plaque matricule={visite.camion.matricule} taille="xs" />
+                <Chrono visite={visite} maintenant={maintenant} niveau={niveau} />
             </div>
         );
     }
 
     return (
-        <div className={`${base} flex items-center gap-3 px-3 py-2.5`}>
+        <div className={`${base} flex items-center gap-2 px-2.5 py-2`}>
             {rang !== undefined && (
                 <span className="absolute -left-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-violet-500 text-[11px] font-black text-white shadow-md">
                     {rang}
                 </span>
             )}
-            <Camion3D operation={visite.operation} largeur={58} roule={enDeplacement} />
+            <Camion3D operation={visite.operation} largeur={42} roule={enDeplacement} />
             <div className="min-w-0 flex-1 space-y-1">
-                <Plaque matricule={visite.camion.matricule} />
+                <Plaque matricule={visite.camion.matricule} taille="sm" />
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <BadgeOperation operation={visite.operation} />
                     <Chrono visite={visite} maintenant={maintenant} niveau={niveau} />

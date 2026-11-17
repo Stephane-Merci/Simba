@@ -28,7 +28,7 @@ export function FileAttente({ visites }: { visites: Visite[] }) {
                 icone={<MapPin size={15} />}
                 titre="Accueil"
                 couleur="var(--attente)"
-                droite={<span className="rounded-full bg-violet-500/10 px-2.5 py-0.5 text-xs font-bold text-violet-700">{pluriel(visites.length, 'camion')}</span>}
+                droite={<span className="whitespace-nowrap rounded-full bg-violet-500/10 px-2 py-0.5 text-[11px] font-bold text-violet-700">{pluriel(visites.length, 'camion')}</span>}
             />
             <Droppable droppableId={ID_ATTENTE} renderClone={cloneCamion('liste')}>
                 {(p, s) => (
@@ -73,7 +73,7 @@ export function PorteSortie() {
                         </span>
                         <div>
                             <p className="text-sm font-extrabold text-slate-800">{s.isDraggingOver ? 'Relâchez pour la sortie' : 'Sortie du site'}</p>
-                            <p className="text-xs text-slate-500">Glissez un camion ici quand il part</p>
+                            <p className="text-xs leading-tight text-slate-500">Glissez un camion ici</p>
                         </div>
                     </div>
                     <div className="h-0 overflow-hidden">{p.placeholder}</div>
@@ -183,21 +183,18 @@ export function ZoneParking({ parking, occupants }: { parking: Parking; occupant
                     <div
                         ref={p.innerRef}
                         {...p.droppableProps}
-                        className={`mt-2.5 flex min-h-[52px] flex-col gap-2 rounded-xl p-1.5 transition ${
+                        className={`mt-2.5 grid min-h-[52px] grid-cols-3 content-start gap-1.5 rounded-xl p-1.5 transition ${
                             s.isDraggingOver ? 'bg-emerald-500/10 ring-2 ring-emerald-400' : 'bg-slate-900/[0.03]'
                         }`}
-                        style={{
-                            backgroundImage: 'repeating-linear-gradient(90deg, transparent 0 46px, rgba(15,23,42,0.06) 46px 48px)',
-                        }}
                     >
                         {occupants.map((v, i) => (
                             <CamionGlissable key={v.id} visite={v} index={i} variante="parking" />
                         ))}
                         {p.placeholder}
                         {n === 0 && !s.isDraggingOver && (
-                            <p className="py-2.5 text-center text-xs font-medium text-slate-400">{pluriel(parking.capacite, 'place libre', 'places libres')}</p>
+                            <p className="col-span-3 py-2.5 text-center text-xs font-medium text-slate-400">{pluriel(parking.capacite, 'place libre', 'places libres')}</p>
                         )}
-                        {plein && <p className="text-center text-[11px] font-bold uppercase tracking-wider text-rose-500">Complet</p>}
+                        {plein && <p className="col-span-3 text-center text-[11px] font-bold uppercase tracking-wider text-rose-500">Complet</p>}
                     </div>
                 )}
             </Droppable>

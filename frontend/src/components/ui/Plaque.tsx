@@ -1,6 +1,7 @@
 /** Plaque d'immatriculation (style européen, bandeau bleu à gauche). */
-export default function Plaque({ matricule, taille = 'md' }: { matricule: string; taille?: 'sm' | 'md' | 'lg' | 'xl' }) {
+export default function Plaque({ matricule, taille = 'md' }: { matricule: string; taille?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' }) {
     const t = {
+        xs: { box: 'h-4 max-w-full text-[9px] tracking-normal', band: 'w-2 text-[5px]', pad: 'px-1' },
         sm: { box: 'h-5 text-[10px]', band: 'w-2.5 text-[6px]', pad: 'px-1.5' },
         md: { box: 'h-6 text-xs', band: 'w-3 text-[7px]', pad: 'px-2' },
         lg: { box: 'h-8 text-base', band: 'w-4 text-[9px]', pad: 'px-2.5' },
@@ -13,7 +14,9 @@ export default function Plaque({ matricule, taille = 'md' }: { matricule: string
             <span className={`flex flex-col items-center justify-center bg-blue-700 ${t.band}`}>
                 <span className="h-[35%] w-[55%] rounded-full border border-dotted border-yellow-300" />
             </span>
-            <span className={`flex items-center whitespace-nowrap ${t.pad}`}>{matricule}</span>
+            <span className={`flex min-w-0 items-center whitespace-nowrap ${t.pad}`}>
+                <span className="truncate">{matricule}</span>
+            </span>
         </span>
     );
 }
