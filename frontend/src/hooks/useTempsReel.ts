@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { io } from 'socket.io-client';
 import { SOCKET_URL } from '../api/client';
 import { useSite } from '../store/useSite';
+import { useAuth } from '../store/useAuth';
 
 const EVENEMENT_SITE = 'site:maj';
 const SECOURS_MS = 30000;
@@ -26,7 +27,10 @@ export function useTempsReel() {
             }, 150);
         };
 
-        const socket = io(SOCKET_URL ?? '/', { transports: ['websocket', 'polling'] });
+        const socket = io(SOCKET_URL ?? '/', {
+            transports: ['websocket', 'polling'],
+            auth: (cb) => cb({ jeton: useAuth.getState().jeton }),
+        });
         socket.on('connect', () => {
             setConnecte(true);
             rafraichir();

@@ -93,7 +93,7 @@ export default function FicheVisite() {
         <div className="fixed inset-0 z-[90] flex justify-end bg-slate-900/20 backdrop-blur-[2px] animate-fondu" onMouseDown={(e) => e.target === e.currentTarget && fermer()}>
             <aside className="glass-strong animate-tiroir flex h-full w-full max-w-md flex-col sm:m-3 sm:h-[calc(100%-1.5rem)] sm:rounded-3xl" role="dialog" aria-label={`Fiche ${visite.camion.matricule}`}>
                 {/* En-tête */}
-                <div className="relative overflow-hidden rounded-t-3xl px-6 pb-5 pt-6" style={{ background: `linear-gradient(135deg, ${o.douce}, transparent 70%)` }}>
+                <div className="relative overflow-hidden rounded-t-3xl px-6 pb-5 pt-6" style={{ background: o.douce }}>
                     <button onClick={fermer} className="absolute right-4 top-4 rounded-xl p-2 text-slate-500 hover:bg-white/60" aria-label="Fermer">
                         <X size={18} />
                     </button>

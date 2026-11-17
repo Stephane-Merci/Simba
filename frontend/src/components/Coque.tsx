@@ -1,6 +1,6 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
-import { History, LayoutDashboard, Plus, Settings2, Truck } from 'lucide-react';
+import { ChevronDown, History, KeyRound, LayoutDashboard, LogOut, Plus, Settings2, Truck, UserRound } from 'lucide-react';
 import { useTempsReel } from '../hooks/useTempsReel';
 import { useMaintenant } from '../hooks/useMaintenant';
 import { useSite } from '../store/useSite';
@@ -10,6 +10,8 @@ import Notifications from './ui/Notifications';
 import ModaleAccueil from './parcours/ModaleAccueil';
 import FicheVisite from './parcours/FicheVisite';
 import ModaleSortie from './parcours/ModaleSortie';
+import ModaleMotDePasse from './ModaleMotDePasse';
+import { useAuth } from '../store/useAuth';
 
 const LIENS = [
     { to: '/', libelle: 'Tableau de bord', icone: LayoutDashboard, fin: true },
@@ -41,7 +43,69 @@ function Connexion() {
     );
 }
 
-/** Mise en page commune : fond animé, navigation, fenêtres globales. */
+/** Menu du compte connecté : changement de mot de passe, déconnexion. */
+function MenuCompte() {
+    const utilisateur = useAuth((s) => s.utilisateur);
+    const fermerSession = useAuth((s) => s.fermer);
+    const [ouvert, setOuvert] = useState(false);
+    const [motDePasse, setMotDePasse] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!ouvert) return;
+        const dehors = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOuvert(false);
+        const echap = (e: KeyboardEvent) => e.key === 'Escape' && setOuvert(false);
+        document.addEventListener('mousedown', dehors);
+        document.addEventListener('keydown', echap);
+        return () => {
+            document.removeEventListener('mousedown', dehors);
+            document.removeEventListener('keydown', echap);
+        };
+    }, [ouvert]);
+
+    return (
+        <div ref={ref} className="relative">
+            <button
+                onClick={() => setOuvert((o) => !o)}
+                className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-2.5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                aria-haspopup="menu"
+                aria-expanded={ouvert}
+                title={utilisateur?.nom}
+            >
+                <UserRound size={16} />
+                <span className="hidden max-w-[120px] truncate lg:inline">{utilisateur?.nom}</span>
+                <ChevronDown size={14} className="text-slate-400" />
+            </button>
+            {ouvert && (
+                <div role="menu" className="glass-strong absolute right-0 top-full z-50 mt-2 w-56 rounded-xl p-1.5 animate-apparition">
+                    <p className="truncate px-3 pb-2 pt-1.5 text-xs text-slate-500">
+                        Connecté : <span className="font-bold text-slate-700">{utilisateur?.identifiant}</span>
+                    </p>
+                    <button
+                        role="menuitem"
+                        onClick={() => {
+                            setOuvert(false);
+                            setMotDePasse(true);
+                        }}
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                    >
+                        <KeyRound size={15} /> Modifier le mot de passe
+                    </button>
+                    <button
+                        role="menuitem"
+                        onClick={fermerSession}
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50"
+                    >
+                        <LogOut size={15} /> Se déconnecter
+                    </button>
+                </div>
+            )}
+            <ModaleMotDePasse ouvert={motDePasse} onFermer={() => setMotDePasse(false)} />
+        </div>
+    );
+}
+
+/** Mise en page commune : fond blanc, navigation, fenêtres globales. */
 export default function Coque({ children }: { children: ReactNode }) {
     useTempsReel();
     const ouvrirAccueil = useUi((s) => s.ouvrirAccueil);
@@ -61,21 +125,11 @@ export default function Coque({ children }: { children: ReactNode }) {
     }, [ouvrirAccueil]);
 
     return (
-        <div className="relative min-h-screen">
-            <div className="aurora" aria-hidden>
-                <span />
-                <span />
-                <span />
-                <span />
-            </div>
-
+        <div className="relative min-h-screen bg-white">
             <header className="sticky top-0 z-40 px-3 pt-3 sm:px-5">
                 <div className="glass mx-auto flex max-w-[1600px] items-center gap-3 rounded-2xl px-3 py-2.5 sm:px-4">
                     <div className="flex items-center gap-2.5">
-                        <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-orange-500/30">
-                            <Truck size={20} className="text-white" />
-                            <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-400" />
-                        </div>
+                        <img src="/logo-tyt.png" alt="Groupe TYT" className="h-11 w-11 object-contain mix-blend-multiply" />
                         <div className="hidden leading-tight sm:block">
                             <p className="text-lg font-black tracking-tight text-slate-900">SIMBA</p>
                             <p className="-mt-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Gestion du site</p>
@@ -91,7 +145,7 @@ export default function Coque({ children }: { children: ReactNode }) {
                                 title={libelle}
                                 className={({ isActive }) =>
                                     `flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${
-                                        isActive ? 'bg-slate-900 text-white shadow-md' : 'text-slate-600 hover:bg-white/70 hover:text-slate-900'
+                                        isActive ? 'bg-slate-900 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                                     }`
                                 }
                             >
@@ -107,6 +161,7 @@ export default function Coque({ children }: { children: ReactNode }) {
                         <Bouton onClick={() => ouvrirAccueil()} icone={<Plus size={18} />} title="Nouvelle arrivée (raccourci : N)" className="!px-3 sm:!px-4">
                             <span className="hidden sm:inline">Nouvelle arrivée</span>
                         </Bouton>
+                        <MenuCompte />
                     </div>
                 </div>
             </header>

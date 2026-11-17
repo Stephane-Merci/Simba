@@ -56,7 +56,7 @@ export const recherche = z.object({
 });
 
 export const quai = z.object({
-    nom: z.string().trim().min(1, 'Le nom du quai est obligatoire.').max(60),
+    nom: z.string().trim().min(1, 'Le nom de la porte est obligatoire.').max(60),
     description: texteOptionnel,
 });
 
@@ -68,3 +68,17 @@ export const parking = z.object({
 export const ordre = z.object({ ids: z.array(id) });
 
 export const stats = z.object({ debutJournee: z.coerce.date().optional() });
+
+// ── Authentification ─────────────────────────────────────────────────────
+export const connexion = z.object({
+    identifiant: z.string().trim().min(1, 'Saisissez votre identifiant.').max(60),
+    motDePasse: z.string().min(1, 'Saisissez votre mot de passe.').max(200),
+});
+
+export const changementMotDePasse = z.object({
+    actuel: z.string().min(1, 'Saisissez votre mot de passe actuel.').max(200),
+    nouveau: z
+        .string()
+        .min(8, 'Le nouveau mot de passe doit contenir au moins 8 caractères.')
+        .max(200, 'Le nouveau mot de passe est trop long.'),
+});

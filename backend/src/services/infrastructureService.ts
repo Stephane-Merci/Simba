@@ -31,7 +31,7 @@ export async function modifierQuai(id: string, data: { nom?: string; description
 /** Suppression logique : l'historique des séjours sur ce quai est conservé. */
 export async function supprimerQuai(id: string) {
     const occupe = await prisma.sejour.findFirst({ where: { quaiId: id, fin: null } });
-    if (occupe) throw conflit('Ce quai est occupé. Déplacez le camion avant de le supprimer.');
+    if (occupe) throw conflit('Cette porte est occupée. Déplacez le camion avant de la supprimer.');
     await prisma.quai.update({ where: { id }, data: { isActive: false } });
     notifierSite('quai');
 }

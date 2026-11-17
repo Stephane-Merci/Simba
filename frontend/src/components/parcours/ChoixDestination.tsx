@@ -42,7 +42,7 @@ export default function ChoixDestination({ etat, valeur, onChoisir, visiteId, de
 
             {etat.quais.length > 0 && (
                 <div>
-                    <p className="label">Quais</p>
+                    <p className="label">Portes</p>
                     <div className="flex flex-wrap gap-2">
                         {etat.quais.map((q) => {
                             const occupant = parQuai.get(q.id);
@@ -54,7 +54,7 @@ export default function ChoixDestination({ etat, valeur, onChoisir, visiteId, de
                                     type="button"
                                     disabled={desactive || occupe}
                                     onClick={() => onChoisir(d)}
-                                    title={occupe ? `Occupé par ${occupant!.camion.matricule}` : 'Libre'}
+                                    title={occupe ? `Occupée par ${occupant!.camion.matricule}` : 'Libre'}
                                     className={classe(egal(valeur, d), 'bg-orange-500 shadow-orange-500/30')}
                                 >
                                     <Warehouse size={15} />

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuth } from '../store/useAuth';
 
 /**
  * URL de l'API. Par défaut « /api » (même origine : proxy Vite en dev, nginx ou
@@ -15,6 +16,20 @@ const apiClient = axios.create({
     baseURL: API_URL,
     headers: { 'Content-Type': 'application/json' },
     timeout: 15000,
+});
+
+// Jeton de session joint à chaque appel ; une session expirée renvoie à l'écran de connexion.
+apiClient.interceptors.request.use((cfg) => {
+    const jeton = useAuth.getState().jeton;
+    if (jeton) cfg.headers.Authorization = `Bearer ${jeton}`;
+    return cfg;
+});
+
+apiClient.interceptors.response.use(undefined, (e) => {
+    if (axios.isAxiosError(e) && e.response?.status === 401 && !e.config?.url?.endsWith('/auth/connexion')) {
+        useAuth.getState().fermer();
+    }
+    return Promise.reject(e);
 });
 
 /** Message lisible (en français) à partir d'une erreur d'appel API. */

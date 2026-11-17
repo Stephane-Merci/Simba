@@ -49,11 +49,11 @@ function LigneQuai({ quai, occupe, premier, dernier, onMonter, onDescendre }: { 
 
     const enregistrer = async (e?: FormEvent) => {
         e?.preventDefault();
-        if (await action(() => infraApi.modifierQuai(quai.id, { nom, description: description || null }), 'Quai modifié')) setEdition(false);
+        if (await action(() => infraApi.modifierQuai(quai.id, { nom, description: description || null }), 'Porte modifiée')) setEdition(false);
     };
     const supprimer = async () => {
-        const ok = await confirmer({ titre: `Supprimer ${quai.nom} ?`, message: "Le quai n'apparaîtra plus sur le tableau de bord. L'historique des passages est conservé.", libelleOk: 'Supprimer', danger: true });
-        if (ok) await action(() => infraApi.supprimerQuai(quai.id), `${quai.nom} supprimé`);
+        const ok = await confirmer({ titre: `Supprimer ${quai.nom} ?`, message: "La porte n'apparaîtra plus sur le tableau de bord. L'historique des passages est conservé.", libelleOk: 'Supprimer', danger: true });
+        if (ok) await action(() => infraApi.supprimerQuai(quai.id), `${quai.nom} supprimée`);
     };
 
     if (edition) {
@@ -72,13 +72,13 @@ function LigneQuai({ quai, occupe, premier, dernier, onMonter, onDescendre }: { 
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-500/10 text-orange-600"><Warehouse size={17} /></span>
             <div className="min-w-0 flex-1">
                 <p className="font-bold text-slate-900">{quai.nom}</p>
-                <p className="truncate text-xs text-slate-500">{occupe ? `Occupé par ${occupe}` : quai.description || 'Libre'}</p>
+                <p className="truncate text-xs text-slate-500">{occupe ? `Occupée par ${occupe}` : quai.description || 'Libre'}</p>
             </div>
             <div className="flex items-center gap-0.5 opacity-60 transition group-hover:opacity-100">
                 <button onClick={onMonter} disabled={premier} className="rounded-lg p-1.5 text-slate-500 hover:bg-white disabled:opacity-20" title="Monter"><ArrowUp size={15} /></button>
                 <button onClick={onDescendre} disabled={dernier} className="rounded-lg p-1.5 text-slate-500 hover:bg-white disabled:opacity-20" title="Descendre"><ArrowDown size={15} /></button>
                 <button onClick={() => setEdition(true)} className="rounded-lg p-1.5 text-slate-500 hover:bg-white" title="Modifier"><Pencil size={15} /></button>
-                <button onClick={supprimer} disabled={!!occupe} className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-20" title={occupe ? 'Quai occupé' : 'Supprimer'}><Trash2 size={15} /></button>
+                <button onClick={supprimer} disabled={!!occupe} className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-20" title={occupe ? 'Porte occupée' : 'Supprimer'}><Trash2 size={15} /></button>
             </div>
         </div>
     );
@@ -126,7 +126,7 @@ export default function Configuration() {
 
     const ajouterQuai = async (e: FormEvent) => {
         e.preventDefault();
-        const nom = nomQuai.trim() || `Quai ${etat.quais.length + 1}`;
+        const nom = nomQuai.trim() || `Porte ${etat.quais.length + 1}`;
         if (await action(() => infraApi.creerQuai({ nom }), `${nom} ajouté`)) setNomQuai('');
     };
     const ajouterParking = async (e: FormEvent) => {
@@ -140,24 +140,24 @@ export default function Configuration() {
     const deplacerQuai = (i: number, sens: -1 | 1) => {
         const ids = etat.quais.map((q) => q.id);
         [ids[i], ids[i + sens]] = [ids[i + sens], ids[i]];
-        void action(() => infraApi.ordonnerQuais(ids), 'Ordre des quais mis à jour');
+        void action(() => infraApi.ordonnerQuais(ids), 'Ordre des portes mis à jour');
     };
 
     return (
         <div className="space-y-5 animate-apparition">
             <div>
                 <h1 className="text-3xl font-black tracking-tight text-slate-900">Configuration du site</h1>
-                <p className="mt-1 text-sm text-slate-500">Quais de chargement / déchargement et zones de parking.</p>
+                <p className="mt-1 text-sm text-slate-500">Portes de chargement / déchargement et zones de parking.</p>
             </div>
 
             <div className="grid gap-5 lg:grid-cols-2">
                 <section className="glass rounded-3xl p-5">
                     <h2 className="mb-1 flex items-center gap-2 text-lg font-extrabold text-slate-900">
-                        <Warehouse size={18} className="text-orange-500" /> Quais <span className="text-sm font-semibold text-slate-400">({etat.quais.length})</span>
+                        <Warehouse size={18} className="text-orange-500" /> Portes <span className="text-sm font-semibold text-slate-400">({etat.quais.length})</span>
                     </h2>
-                    <p className="mb-4 text-sm text-slate-500">Un quai accueille un seul camion à la fois.</p>
+                    <p className="mb-4 text-sm text-slate-500">Une porte accueille un seul camion à la fois.</p>
                     <form onSubmit={ajouterQuai} className="mb-3 flex gap-2">
-                        <input className="field" value={nomQuai} onChange={(e) => setNomQuai(e.target.value)} placeholder={`Quai ${etat.quais.length + 1}`} />
+                        <input className="field" value={nomQuai} onChange={(e) => setNomQuai(e.target.value)} placeholder={`Porte ${etat.quais.length + 1}`} />
                         <Bouton type="submit" icone={<Plus size={16} />}>Ajouter</Bouton>
                     </form>
                     <div className="space-y-1">
@@ -179,7 +179,7 @@ export default function Configuration() {
                     <h2 className="mb-1 flex items-center gap-2 text-lg font-extrabold text-slate-900">
                         <ParkingSquare size={18} className="text-emerald-500" /> Parkings <span className="text-sm font-semibold text-slate-400">({etat.parkings.length})</span>
                     </h2>
-                    <p className="mb-4 text-sm text-slate-500">Zones où les camions patientent avant ou entre deux quais.</p>
+                    <p className="mb-4 text-sm text-slate-500">Zones où les camions patientent avant ou entre deux portes.</p>
                     <form onSubmit={ajouterParking} className="mb-3 flex flex-wrap items-center gap-2">
                         <input className="field min-w-[160px] flex-1" value={nomParking} onChange={(e) => setNomParking(e.target.value)} placeholder="Nom (ex : Parking Nord)" />
                         <Compteur valeur={capacite} onChange={setCapacite} />

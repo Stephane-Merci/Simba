@@ -4,6 +4,7 @@ import * as visites from '../services/visiteService';
 import * as site from '../services/siteService';
 import * as camions from '../services/camionService';
 import * as infra from '../services/infrastructureService';
+import * as auth from '../services/authService';
 import * as s from './schemas';
 
 /** Contrôleurs HTTP : validation de l'entrée → appel du service → réponse JSON. */
@@ -12,6 +13,24 @@ export const api = Router();
 api.get('/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// ── Authentification ─────────────────────────────────────────────────────
+api.post('/auth/connexion', asyncHandler(async (req, res) => {
+    const { identifiant, motDePasse } = s.connexion.parse(req.body);
+    res.json(await auth.connexion(identifiant, motDePasse, req.ip ?? 'inconnue'));
+}));
+
+// Toutes les routes suivantes exigent une session valide.
+api.use(auth.exigerConnexion);
+
+api.get('/auth/moi', (req, res) => {
+    res.json(req.utilisateur);
+});
+
+api.put('/auth/mot-de-passe', asyncHandler(async (req, res) => {
+    const { actuel, nouveau } = s.changementMotDePasse.parse(req.body);
+    res.json(await auth.changerMotDePasse(req.utilisateur!.id, actuel, nouveau));
+}));
 
 // ── Site (tableau de bord) ───────────────────────────────────────────────
 api.get('/site', asyncHandler(async (_req, res) => {
