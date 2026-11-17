@@ -10,6 +10,7 @@ import { gestionErreurs } from './lib/http';
 export function creerApp() {
     const app = express();
     app.disable('x-powered-by');
+    app.set('trust proxy', 1); // derrière Render / nginx : vraie IP pour la limitation des tentatives
     app.use(cors({ origin: config.corsOrigin }));
     app.use(express.json({ limit: '100kb' }));
 

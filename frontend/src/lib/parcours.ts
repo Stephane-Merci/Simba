@@ -22,7 +22,7 @@ export const OPERATIONS: Record<Operation, { libelle: string; court: string; aid
 export const ZONES: Record<Zone, { libelle: string; couleur: string }> = {
     ATTENTE: { libelle: 'Accueil', couleur: 'var(--attente)' },
     PARKING: { libelle: 'Parking', couleur: 'var(--parking)' },
-    QUAI: { libelle: 'Quai', couleur: 'var(--quai)' },
+    QUAI: { libelle: 'Porte', couleur: 'var(--quai)' },
 };
 
 /** Seuils (en minutes) à partir desquels un séjour est signalé : [attention, alerte]. */
@@ -64,7 +64,7 @@ export function destinationDepuisId(id: string): Destination | null {
 }
 
 export function libelleDestination(etat: EtatSite, d: Destination): string {
-    if (d.zone === 'QUAI') return etat.quais.find((q) => q.id === d.quaiId)?.nom ?? 'Quai';
+    if (d.zone === 'QUAI') return etat.quais.find((q) => q.id === d.quaiId)?.nom ?? 'Porte';
     if (d.zone === 'PARKING') return etat.parkings.find((p) => p.id === d.parkingSectionId)?.nom ?? 'Parking';
     return 'Accueil';
 }

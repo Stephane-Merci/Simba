@@ -94,7 +94,7 @@ export function PorteQuai({ quai, occupant }: { quai: Quai; occupant?: Visite })
                 </span>
                 <span
                     className={`h-2.5 w-2.5 shrink-0 rounded-full shadow ${occupe ? 'voyant bg-rose-500 shadow-rose-500/60' : 'bg-emerald-500 shadow-emerald-500/60'}`}
-                    title={occupe ? 'Occupé' : 'Libre'}
+                    title={occupe ? 'Occupée' : 'Libre'}
                 />
             </div>
             <Droppable droppableId={idQuai(quai.id)} isDropDisabled={occupe} renderClone={cloneCamion('quai')}>
@@ -141,7 +141,7 @@ export function GrilleQuais({ quais, parQuai, entete }: { quais: Quai[]; parQuai
         <section className="glass flex min-h-0 flex-col rounded-3xl p-4">
             <EnTete
                 icone={<Warehouse size={15} />}
-                titre="Quais"
+                titre="Portes"
                 couleur="var(--quai)"
                 droite={
                     <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-bold text-emerald-700">

@@ -1,4 +1,5 @@
 import api from './client';
+import type { Utilisateur } from '../store/useAuth';
 import type {
     ArriveeInput,
     CamionRegistre,
@@ -52,4 +53,14 @@ export const infraApi = {
     modifierParking: (id: string, data: { nom?: string; capacite?: number }) =>
         api.put<Parking>(`/parkings/${id}`, data).then((r) => r.data),
     supprimerParking: (id: string) => api.delete(`/parkings/${id}`),
+};
+
+export const authApi = {
+    connexion: (identifiant: string, motDePasse: string) =>
+        api
+            .post<{ jeton: string; utilisateur: Utilisateur }>('/auth/connexion', { identifiant, motDePasse })
+            .then((r) => r.data),
+    moi: () => api.get<Utilisateur>('/auth/moi').then((r) => r.data),
+    changerMotDePasse: (actuel: string, nouveau: string) =>
+        api.put<{ jeton: string }>('/auth/mot-de-passe', { actuel, nouveau }).then((r) => r.data),
 };

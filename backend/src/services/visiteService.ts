@@ -55,13 +55,13 @@ async function reserverEmplacement(tx: Tx, destination: Destination, visiteId?: 
 
         case 'QUAI': {
             const quai = await tx.quai.findUnique({ where: { id: destination.quaiId } });
-            if (!quai || !quai.isActive) throw introuvable('Quai introuvable.');
+            if (!quai || !quai.isActive) throw introuvable('Porte introuvable.');
             const occupant = await tx.sejour.findFirst({
                 where: { quaiId: quai.id, fin: null, ...autreVisite },
                 include: { visite: { include: { camion: true } } },
             });
             if (occupant) {
-                throw conflit(`${quai.nom} est déjà occupé par ${occupant.visite.camion.matricule}.`);
+                throw conflit(`${quai.nom} est déjà occupée par ${occupant.visite.camion.matricule}.`);
             }
             return { zone: Zone.QUAI, libelle: quai.nom, quaiId: quai.id, parkingSectionId: null };
         }

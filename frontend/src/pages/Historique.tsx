@@ -33,7 +33,7 @@ function debutPeriode(p: Periode): Date | undefined {
 function exporterCsv(visites: Visite[]) {
     const minutes = (ms: number) => Math.round(ms / 60000);
     const lignes = [
-        ['Matricule', 'Transporteur', 'Chauffeur', 'Opération', 'Arrivée', 'Départ', 'Durée totale (min)', 'Accueil (min)', 'Parking (min)', 'Quai (min)', 'Parcours', 'Note'],
+        ['Matricule', 'Transporteur', 'Chauffeur', 'Opération', 'Arrivée', 'Départ', 'Durée totale (min)', 'Accueil (min)', 'Parking (min)', 'Porte (min)', 'Parcours', 'Note'],
         ...visites.map((v) => {
             const z = tempsParZone(v.sejours, Date.now());
             return [
@@ -119,7 +119,7 @@ export default function Historique() {
             <div className="glass flex flex-wrap items-center gap-3 rounded-2xl p-3">
                 <div className="relative min-w-[220px] flex-1">
                     <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input className="field pl-10" placeholder="Matricule, transporteur, chauffeur, quai…" value={q} onChange={(e) => setQ(e.target.value)} />
+                    <input className="field pl-10" placeholder="Matricule, transporteur, chauffeur, porte…" value={q} onChange={(e) => setQ(e.target.value)} />
                 </div>
                 <div className="flex rounded-xl bg-white/50 p-1">
                     {PERIODES.map((p) => (

@@ -21,6 +21,7 @@ services:
     environment:
       DATABASE_URL: postgresql://simba:${POSTGRES_PASSWORD:-simba}@db:5432/simba?schema=public
       PORT: 5001
+      AUTH_SECRET: ${AUTH_SECRET:?Définissez AUTH_SECRET (longue chaîne aléatoire)}
     depends_on:
       db:
         condition: service_healthy

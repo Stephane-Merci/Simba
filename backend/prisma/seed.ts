@@ -6,9 +6,9 @@ const prisma = new PrismaClient();
 async function main() {
     if ((await prisma.quai.count()) === 0) {
         await prisma.quai.createMany({
-            data: Array.from({ length: 8 }, (_, i) => ({ nom: `Quai ${i + 1}`, ordre: i })),
+            data: Array.from({ length: 8 }, (_, i) => ({ nom: `Porte ${i + 1}`, ordre: i })),
         });
-        console.log('8 quais créés');
+        console.log('8 portes créées');
     }
     if ((await prisma.parkingSection.count()) === 0) {
         await prisma.parkingSection.createMany({

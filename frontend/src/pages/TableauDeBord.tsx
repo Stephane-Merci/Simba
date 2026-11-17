@@ -15,7 +15,6 @@ function Indicateur({ icone, libelle, valeur, detail, couleur }: { icone: ReactN
     const tilt = useTilt(9);
     return (
         <div {...tilt} className="tilt glass relative overflow-hidden rounded-2xl px-4 py-3">
-            <div className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full opacity-25 blur-xl" style={{ background: couleur }} />
             <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 <span style={{ color: couleur }}>{icone}</span>
                 {libelle}
@@ -76,7 +75,7 @@ export default function TableauDeBord() {
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6" style={{ perspective: 1000 }}>
                     <Indicateur icone={<Truck size={14} />} libelle="Sur site" valeur={etat.visites.length} detail={stats ? `${stats.arriveesDuJour} arrivées auj.` : undefined} couleur="#0ea5e9" />
                     <Indicateur icone={<MapPin size={14} />} libelle="À l'accueil" valeur={occ.attente.length} couleur="var(--attente)" />
-                    <Indicateur icone={<Warehouse size={14} />} libelle="Quais occupés" valeur={occ.parQuai.size} detail={`/ ${etat.quais.length}`} couleur="var(--quai)" />
+                    <Indicateur icone={<Warehouse size={14} />} libelle="Portes occupées" valeur={occ.parQuai.size} detail={`/ ${etat.quais.length}`} couleur="var(--quai)" />
                     <Indicateur icone={<ParkingSquare size={14} />} libelle="Parking" valeur={auParking} detail={`/ ${placesParking} places`} couleur="var(--parking)" />
                     <Indicateur icone={<LogOut size={14} />} libelle="Sorties du jour" valeur={stats?.sortiesDuJour ?? '—'} couleur="#f43f5e" />
                     {alertes > 0 ? (
@@ -93,7 +92,7 @@ export default function TableauDeBord() {
                 </div>
 
                 <p className="hidden text-center text-xs text-slate-500 md:block">
-                    Glissez-déposez un camion pour le déplacer entre l'accueil, les quais et les parkings · cliquez dessus pour ouvrir sa fiche ·
+                    Glissez-déposez un camion pour le déplacer entre l'accueil, les portes et les parkings · cliquez dessus pour ouvrir sa fiche ·
                     raccourci <kbd className="rounded border border-slate-300 bg-white/70 px-1.5 font-mono text-[10px]">N</kbd> pour une nouvelle arrivée
                 </p>
 
@@ -109,9 +108,9 @@ export default function TableauDeBord() {
                         entete={
                             etat.quais.length === 0 && (
                                 <div className="rounded-2xl border-2 border-dashed border-slate-300 p-8 text-center">
-                                    <p className="font-semibold text-slate-600">Aucun quai configuré</p>
+                                    <p className="font-semibold text-slate-600">Aucune porte configurée</p>
                                     <Link to="/configuration" className="mt-2 inline-block text-sm font-bold text-sky-600 hover:underline">
-                                        Ajouter des quais →
+                                        Ajouter des portes →
                                     </Link>
                                 </div>
                             )
